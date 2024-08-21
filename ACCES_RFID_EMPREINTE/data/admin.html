@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            background-color: #FAF5FF;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            background-color: #4C1D95;
+            color: white;
+            width: 20%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .sidebar img {
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            margin-right: 16px;
+        }
+
+        .sidebar .profile {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .sidebar nav ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar nav ul li {
+            padding: 10px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar nav ul li:hover {
+            background-color: #5B21B6;
+        }
+
+        .content {
+            background-color: #F3E8FF;
+            width: 80%;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .content-header h1 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #6D28D9;
+        }
+
+        .content-header .filter {
+            position: relative;
+        }
+
+        .content-header .filter input {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 200px;
+        }
+
+        .content-header .filter button {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            background-color: transparent;
+            border: none;
+            color: #6D28D9;
+            cursor: pointer;
+        }
+
+        .dashboard-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .dashboard-stats .stat {
+            background-color: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+
+        .dashboard-stats .stat h2 {
+            color: #6D28D9;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .dashboard-stats .stat p {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .dashboard-stats .stat p.up {
+            color: #16A34A;
+        }
+
+        .dashboard-stats .stat p.down {
+            color: #DC2626;
+        }
+
+        .list-section {
+            background-color: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-section h2 {
+            color: #6D28D9;
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+
+        .list-section p {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="profile">
+                <img src="../img/logo.png" alt="">
+                <div>
+                    <p>Admin</p>
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li id="add-user">Ajout Utilisateur</li>
+                    <li id="setting">Paramètre Utilisateur</li>
+                    <li id="history">Historique</li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="content-header">
+                <h1>DASHBOARD</h1>
+                <div class="filter">
+                    <input type="text" placeholder="Filtrer...">
+                    <button>Filtrer</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats -->
+            <div class="dashboard-stats">
+                <div class="stat">
+                    <h2>ENTREES</h2>
+                    <p class="up">2 ▲</p>
+                </div>
+                <div class="stat">
+                    <h2>SORTIES</h2>
+                    <p>4 ▼</p>
+                </div>
+                <div class="stat">
+                    <h2>NOMBRE D'EMPLOYES</h2>
+                    <p class="down">12</p>
+                </div>
+            </div>
+
+            <!-- List Section -->
+            <div class="list-section">
+                <h2>LISTE</h2>
+                <p>Jhon Ross</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        const add_user_button = document.getElementById('add-user');
+        add_user_button.addEventListener('click',function(){
+            window.location.href = '/add_user'; // add user
+        });
+        // const setting_button = document.getElementById('setting');
+        // setting_button.addEventListener('click',function(){
+        //     window/location.href = '/setting.html'; //
+        // })
+    </script>
+</body>
+
+</html>

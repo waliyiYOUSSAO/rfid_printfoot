@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        body {
+            background-color: #FAF5FF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            background-color: #FFFFFF;
+            padding: 32px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            color: #6B46C1;
+            margin-bottom: 32px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #4A5568;
+            margin-bottom: 8px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            margin-bottom: 24px;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #805AD5;
+        }
+
+        input[type = "submit"] {
+            width: 100%;
+            background-color: #6B46C1;
+            color: #FFFFFF;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        
+        button:hover {
+            background-color: #553C9A;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Connexion</h2>
+
+        <form action="/login" method="post">
+            <div>
+                <label for="username">Nom d'utilisateur</label>
+                <input type="text" id="username" name="username" placeholder="Entrer votre nom d'utilisateur" required>
+            </div>
+
+            <div>
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" placeholder="Entrer votre mot de passe" required>
+            </div>
+
+            <input type="submit" id="redirect_submit" value="Connexion">
+        </form>
+    </div>
+</body>
+
+</html>
