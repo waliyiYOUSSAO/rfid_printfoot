@@ -9,7 +9,7 @@
 #include <ESP8266WiFi.h>
 #endif
 #include <RtcDS1302.h>
-#include "RTClib.h"
+//#include "RTClib.h"
 #include "time.h"
 
 class Clock_ {
@@ -20,7 +20,7 @@ public:
     String show_date();
 
 private:
-    ThreeWire my_wire = ThreeWire(D0, D1, D4);  // Pins pour le DS1302 // esp8266 13 14 12 // esp32 13 15 12 // DAT: D2,CLK: D1,RST: D3
+    ThreeWire my_wire = ThreeWire(D0, D1, D4);  // Pins pour le DS1302 // esp8266 16 5 2 // esp32 13 15 12 // DAT: D0,CLK: D1,RST: D4
     RtcDS1302<ThreeWire> rtc = RtcDS1302<ThreeWire>(my_wire); // Initialisation RTC
     
 };

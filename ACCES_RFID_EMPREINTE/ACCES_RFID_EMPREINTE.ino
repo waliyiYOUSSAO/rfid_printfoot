@@ -30,7 +30,7 @@ const uint8_t SDA_PIN = D2;
 const uint8_t SCL_PIN = D3;
 
 // Prototypes
-String rfid_read();
+//String rfid_read();
 
 // Creation of instances
 Clock_ clock_;
@@ -51,14 +51,17 @@ const String password = "1234567890";
 String first_name = "";
 String last_name = "";
 String department = "";
-
+int in_and_out = 0;
+int number_int = 0;
 void setup() {
     Serial.begin(115200);
 
     //WiFi.config(IP, gateway, subnet, dns);
 
     // Initialize Clock
-    clock_init();
+    clock_.Begin();
+    clock_.init_WiFi("USER_0BD0F6", "s2PAhtaL"); // Your Wi-Fi credentials // USER_0BD0F6 s2PAhtaL   HUAWEI-2.4G-c9bh
+    clock_.sync_rtc();
 
     // Initialize RFID
     rfid_init();
@@ -85,6 +88,7 @@ void setup() {
 }
 String last_card = "";
 void loop() {
+  
     server.handleClient();
     lcd.setCursor(0, 0);
     lcd.print(clock_.show_date());
@@ -116,21 +120,36 @@ void handle_add_user_form() {
     lcd.setCursor(0, 0);
     lcd.print("Rapprochez");
     lcd.setCursor(0,1);
-    lcd.print("La carte");
+    lcd.print("   La carte");
     
     String rfid_string = wait_for_rfid();
-
-    // Display user information with RFID ID
+    
     if(rfid_string != ""){
+      
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.clear();
-      lcd.print("Vous pouvez");
+      lcd.print("  VOUS POUVEZ");
       lcd.setCursor(0, 1);
-      lcd.print("retiré la carte");
+      lcd.print("RETIRE LA CARTE");
+      delay(2000);
+      lcd.clear();
+      save_card_info(rfid_string,first_name,last_name,department);
+    }
+    else{
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.clear();
+      lcd.print("   TEMPS");
+      lcd.setCursor(0, 1);
+      lcd.print("  ECOULE");
       delay(2000);
       lcd.clear();
     }
+    
+
+    // Display user information with RFID ID
+    
     
 
     // Print to Serial
@@ -140,7 +159,8 @@ void handle_add_user_form() {
     Serial.println(department);
     Serial.println(rfid_string);
     // save informations in txt file
-    save_card_info(rfid_string,first_name,last_name,department);
+
+    
     send_data(first_name, last_name, department, rfid_string);
     server.sendHeader("Location", "/admin",true);
     server.send(302,"text/plain","");
@@ -159,33 +179,11 @@ void entered_exit_rfid(){
   if(last_card != card){
     bool verification = unicity("/info.txt",card);
   if(verification){
-    File file = LittleFS.open("/info.txt","r");
-    if (!file){
-      Serial.println("Failed to open file");
-      return;
-    }
-    else{
-      while (file.available()) {
-        String line = file.readStringUntil('\n');
-        int first_comma = line.indexOf(',');
-        int second_comma = line.indexOf(',',first_comma + 1);
-        String stored_id = line.substring(0,first_comma);
-        if(card.equals(stored_id)){
-          file.close();
-          first_name_display = line.substring(first_comma + 1, second_comma);
-          Serial.println("ACCES AUTORISE");
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print(first_name_display);
-          lcd.setCursor(0, 1);
-          lcd.print(" ACCES AUTORISE");
-          delay(2000);
-          lcd.clear();
-        }
-      }
-        file.close();
-    }
-    
+    String name_returned = name_after_verification("/info.txt",card);
+    Serial.println("ACCES AUTORISE");
+    int number_in_out = in_or_out(card, "/enter_exit.txt");
+    String enter_or_exit = (number_in_out % 2 == 0 ) ? "   ARRIVE": "   DEPART";
+    display_some(name_returned, enter_or_exit);
   }
   else{
     Serial.println("ACCES REFUSE");
@@ -198,7 +196,3 @@ void entered_exit_rfid(){
 
   }
 }
-// int in_ou_out(){
-  
-
-// }
