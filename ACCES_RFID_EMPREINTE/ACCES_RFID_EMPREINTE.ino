@@ -209,41 +209,41 @@ void handle_add_user_form() {
   
 }
     
-void handle_admin() {
-  String html = "<html><body>";
-  html += "<h2>User List</h2>";
-  html += "<table border='1'>";
-  html += "<tr><th>First Name</th><th>Last Name</th><th>Department</th><th>Action</th></tr>";
+// void handle_admin() {
+//   String html = "<html><body>";
+//   html += "<h2>User List</h2>";
+//   html += "<table border='1'>";
+//   html += "<tr><th>First Name</th><th>Last Name</th><th>Department</th><th>Action</th></tr>";
 
-  File file = LittleFS.open("/info.txt", "r");
-  if (file) {
-    while (file.available()) {
-      String line = file.readStringUntil('\n');
-      int first_comma = line.indexOf(',');
-      int second_comma = line.indexOf(',', first_comma + 1);
-      int last_comma = line.lastIndexOf(',');
+//   File file = LittleFS.open("/info.txt", "r");
+//   if (file) {
+//     while (file.available()) {
+//       String line = file.readStringUntil('\n');
+//       int first_comma = line.indexOf(',');
+//       int second_comma = line.indexOf(',', first_comma + 1);
+//       int last_comma = line.lastIndexOf(',');
 
-      String id = line.substring(0, first_comma);
-      String first_name = line.substring(first_comma + 1, second_comma);
-      String last_name = line.substring(second_comma + 1, last_comma);
-      String department = line.substring(last_comma + 1);
+//       String id = line.substring(0, first_comma);
+//       String first_name = line.substring(first_comma + 1, second_comma);
+//       String last_name = line.substring(second_comma + 1, last_comma);
+//       String department = line.substring(last_comma + 1);
 
-      html += "<tr>";
-      html += "<td>" + first_name + "</td>";
-      html += "<td>" + last_name + "</td>";
-      html += "<td>" + department + "</td>";
-      html += "<td><form action='/delete_user' method='POST'>";
-      html += "<input type='hidden' name='user_id' value='" + id + "'>";
-      html += "<button type='submit'>Delete</button>";
-      html += "</form></td>";
-      html += "</tr>";
-    }
-    file.close();
-  }
+//       html += "<tr>";
+//       html += "<td>" + first_name + "</td>";
+//       html += "<td>" + last_name + "</td>";
+//       html += "<td>" + department + "</td>";
+//       html += "<td><form action='/delete_user' method='POST'>";
+//       html += "<input type='hidden' name='user_id' value='" + id + "'>";
+//       html += "<button type='submit'>Delete</button>";
+//       html += "</form></td>";
+//       html += "</tr>";
+//     }
+//     file.close();
+//   }
 
-  html += "</table></body></html>";
-  server.send(200, "text/html", html);
-}
+//   html += "</table></body></html>";
+//   server.send(200, "text/html", html);
+// }
 
 
 

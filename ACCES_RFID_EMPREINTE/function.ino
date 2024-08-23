@@ -52,44 +52,6 @@ String wait_for_rfid() {
     return rfid_string;
 }
 
-
-void send_data(String rfid_string, String first_name, String last_name, String department, String statut){
-  static bool flag = false;
-  if (!flag){
-    client = new HTTPSRedirect(httpsPort);
-    client->setInsecure();
-    flag = true;
-    client->setPrintResponseBody(true);
-    client->setContentTypeHeader("application/json");
-  }
-  if (client != nullptr){
-    if (!client->connected()){
-      client->connect(host, httpsPort);
-    }
-  }
-  else{
-    Serial.println("Error creating client object!");
-  }
-  
-  // Create json object string to send to Google Sheets
-  payload = payload_base + "\"" + rfid_string + "," + first_name + "," + last_name_sheet + "," + department_sheet + "," + statut + "\"}";
-  
-  // Publish data to Google Sheets
-  Serial.println("Publishing data...");
-  Serial.println(payload);
-  if(client->POST(url, host, payload)){ 
-    last_name_sheet = "";
-    department_sheet = "";
-  }
-  else{
-    // do stuff here if publish was not successful
-    Serial.println("Error while connecting");
-  }
-
-  // a delay of several seconds is required before publishing again    
-  delay(1000);
-}
-
 void save_card_info(String card_id, String first_name, String last_name, String department){
   bool test_unicity = unicity("/info.txt", card_id);
   if(!test_unicity){
