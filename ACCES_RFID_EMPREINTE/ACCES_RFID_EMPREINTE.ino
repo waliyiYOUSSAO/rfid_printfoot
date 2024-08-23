@@ -7,18 +7,16 @@
 #include <ESP8266WebServer.h>
 #include <LittleFS.h>
 #include <EEPROM.h>
-//#include <WiFiClientSecure.h>
+#include "HTTPSRedirect.h"
 #include <ESP8266HTTPClient.h>
 
 ESP8266WebServer server(80); // Web server port
 
-//const char* host = "script.google.com";
-//const int httpsPort = 443;
-//WiFiClientSecure client; // Create a WiFiClientSecure object
 
-//String GAS_ID = "1pELYc44bfWVblF8f6LtszbhUTUAy3o0vW4oStyrRVNXPljfa7mlbZyxK"; // Spreadsheet script ID
 
 const char *serverName = "http://script.google.com/macros/s/AKfycby9VfafiIHq1j5y3Izfzs2cIS0Q9TZk-UQC5bERgSOMpL6fy28ix8GMt5gVi6a_EkRxPg/exec";
+
+// buzzer
 
 
 // RFID pins
@@ -37,11 +35,24 @@ Clock_ clock_;
 MFRC522 rfid(SS_PIN, RST_PIN);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
+const char *GScriptId = "AKfycbw8kOAGiioS42-s64_pAc6hXwijAJp4vd3PXs0ygwW-hVluM7lqmuWnhzJ1QEq4pjlF";
+
+// Enter command (insert_row or append_row) and your Google Sheets sheet name (default is Sheet1):
+String payload_base =  "{\"command\": \"insert_row\", \"sheet_name\": \"data\", \"values\": ";
+String payload = "";
+
+// Google Sheets setup (do not edit)
+const char* host = "script.google.com";
+const int httpsPort = 443;
+const char* fingerprint = "";
+String url = String("/macros/s/") + GScriptId + "/exec";
+HTTPSRedirect* client = nullptr;
+
 //AdresseIPFixe
-// IPAddress IP(192, 168, 1, 20);       //adresse fixe
-// IPAddress gateway(192, 168, 1, 14);  //passerelle par défaut
-// IPAddress subnet(255, 255, 255, 0);  //masque de sous-réseau
-// IPAddress dns(8, 8, 8, 8);           //DNS
+IPAddress IP(192, 168, 1, 21);       //adresse fixe
+IPAddress gateway(192, 168, 1, 1);  //passerelle par défaut
+IPAddress subnet(255, 255, 255, 0);  //masque de sous-réseau
+IPAddress dns(8, 8, 8, 8);           //DNS
 
 // Admin information
 const String username = "youssao";
@@ -51,12 +62,21 @@ const String password = "1234567890";
 String first_name = "";
 String last_name = "";
 String department = "";
+struct Last_name_department_sheet{
+  String last_name_sheet;
+String department_sheet;
+};
+
+
 int in_and_out = 0;
 int number_int = 0;
 void setup() {
     Serial.begin(115200);
+    //buzzer initialization
 
-    //WiFi.config(IP, gateway, subnet, dns);
+  
+    
+    WiFi.config(IP, gateway, subnet, dns);
 
     // Initialize Clock
     clock_.Begin();
@@ -68,6 +88,31 @@ void setup() {
 
     // Initialize LCD
     lcd_init();
+
+    client = new HTTPSRedirect(httpsPort);
+    client->setInsecure();
+    client->setPrintResponseBody(true);
+    client->setContentTypeHeader("application/json");
+    Serial.print("Connecting to ");
+    Serial.println(host);
+    bool flag = false;
+  for (int i=0; i<5; i++){ 
+    int retval = client->connect(host, httpsPort);
+    if (retval == 1){
+       flag = true;
+       Serial.println("Connected");
+       break;
+    }
+    else
+      Serial.println("Connection failed. Retrying...");
+  }
+  if (!flag){
+    Serial.print("Could not connect to server: ");
+    Serial.println(host);
+    return;
+  }
+  delete client;    // delete HTTPSRedirect object
+  client = nullptr; // delete HTTPSRedirect object
 
     // Initialize LittleFS
     if (!LittleFS.begin()) {
@@ -81,6 +126,7 @@ void setup() {
     server.on("/admin", HTTP_GET, handle_admin);
     server.on("/add_user", HTTP_GET, handle_add_user);
     server.on("/add_user", HTTP_POST, handle_add_user_form);
+    //server.on("/delete_user",HTPP_GET,delete_user);
     
     // Start the server
     server.begin();
@@ -93,9 +139,6 @@ void loop() {
     lcd.setCursor(0, 0);
     lcd.print(clock_.show_date());
     entered_exit_rfid();
-    
-
-    
 }
 
 void handle_login() {
@@ -144,26 +187,20 @@ void handle_add_user_form() {
       lcd.setCursor(0, 1);
       lcd.print("  ECOULE");
       delay(2000);
-      lcd.clear();
+      //lcd.clear();
     }
-    
+    server.sendHeader("Location", "/admin",true);
+    server.send(302,"text/plain","");
 
     // Display user information with RFID ID
     
-    
-
     // Print to Serial
     Serial.println("Received user data:");
     Serial.println(first_name);
     Serial.println(last_name);
     Serial.println(department);
     Serial.println(rfid_string);
-    // save informations in txt file
-
     
-    send_data(first_name, last_name, department, rfid_string);
-    server.sendHeader("Location", "/admin",true);
-    server.send(302,"text/plain","");
     // Reset temporary variablesp
     first_name = "";
     last_name = "";
@@ -172,27 +209,45 @@ void handle_add_user_form() {
   
 }
     
+void handle_admin() {
+  String html = "<html><body>";
+  html += "<h2>User List</h2>";
+  html += "<table border='1'>";
+  html += "<tr><th>First Name</th><th>Last Name</th><th>Department</th><th>Action</th></tr>";
 
-void entered_exit_rfid(){
-  String card = rfid_read();
-  String first_name_display = "";
-  if(last_card != card){
-    bool verification = unicity("/info.txt",card);
-  if(verification){
-    String name_returned = name_after_verification("/info.txt",card);
-    Serial.println("ACCES AUTORISE");
-    int number_in_out = in_or_out(card, "/enter_exit.txt");
-    String enter_or_exit = (number_in_out % 2 == 0 ) ? "   ARRIVE": "   DEPART";
-    display_some(name_returned, enter_or_exit);
-  }
-  else{
-    Serial.println("ACCES REFUSE");
-    lcd.clear();
-    lcd.setCursor(0, 1);
-    lcd.print(" ACCES REFUSE");
-    delay(2000);
-    lcd.clear();
+  File file = LittleFS.open("/info.txt", "r");
+  if (file) {
+    while (file.available()) {
+      String line = file.readStringUntil('\n');
+      int first_comma = line.indexOf(',');
+      int second_comma = line.indexOf(',', first_comma + 1);
+      int last_comma = line.lastIndexOf(',');
+
+      String id = line.substring(0, first_comma);
+      String first_name = line.substring(first_comma + 1, second_comma);
+      String last_name = line.substring(second_comma + 1, last_comma);
+      String department = line.substring(last_comma + 1);
+
+      html += "<tr>";
+      html += "<td>" + first_name + "</td>";
+      html += "<td>" + last_name + "</td>";
+      html += "<td>" + department + "</td>";
+      html += "<td><form action='/delete_user' method='POST'>";
+      html += "<input type='hidden' name='user_id' value='" + id + "'>";
+      html += "<button type='submit'>Delete</button>";
+      html += "</form></td>";
+      html += "</tr>";
+    }
+    file.close();
   }
 
-  }
+  html += "</table></body></html>";
+  server.send(200, "text/html", html);
 }
+
+
+
+
+
+
+
