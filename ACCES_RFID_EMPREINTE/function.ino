@@ -63,6 +63,7 @@ void save_card_info(String card_id, String first_name, String last_name, String 
 
     String user_info = first_name + "," + last_name + "," + department;
     file.println(card_id + "," + user_info);
+    // send_data("Registered Users",card_id,first_name,"None","00:00");
     file.close();
   //  lcd.print("User Registered");
     Serial.println("Utilisateur Ajouté");
@@ -231,7 +232,7 @@ void display_some(String sentence_1, String sentence_2){ // display somethings
 // Global or class-level variables
 
 
-void send_data(String rfid_string, String first_name, String statut) {
+void send_data(String sheet_name, String rfid_string, String first_name, String statut, String hour) {
   static bool flag = false;
   if (!flag) {
     client = new HTTPSRedirect(httpsPort);
@@ -251,7 +252,7 @@ void send_data(String rfid_string, String first_name, String statut) {
   
   Last_name_department_sheet lastname_department = extract_last_name_and_department("/info.txt",rfid_string);
   // Create json object string to send to Google Sheets
-  String payload = payload_base + "\"" + rfid_string + "," + first_name + "," + lastname_department.last_name_sheet + "," + lastname_department.department_sheet + "," + statut + "\"}";
+  String payload = "{\"sheet_name\":\"" + sheet_name + "\",\"values\":\"" + first_name + "," + lastname_department.last_name_sheet + "," + lastname_department.department_sheet + "," + statut + "," + hour +"\"}";
   
   // Publish data to Google Sheets
   Serial.println("Publishing data...");
@@ -366,7 +367,7 @@ void entered_exit_rfid(){
     int number_in_out = in_or_out(card, "/enter_exit.txt");
     String enter_or_exit = (number_in_out % 2 == 0 ) ? "   ARRIVE": "   DEPART";
     display_some(name_returned, enter_or_exit);
-    send_data(card, name_returned, enter_or_exit);
+    send_data("History Users", card, name_returned, enter_or_exit, "00:00");
     
     
   }

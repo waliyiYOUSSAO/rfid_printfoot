@@ -4,16 +4,16 @@ void Clock_::Begin() {
     rtc.Begin();
 }
 
-void Clock_::init_WiFi(const char* ssid, const char* password) {
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
-    Serial.print("Connexion au WiFi...");
-    while (WiFi.status() != WL_CONNECTED) {
-        Serial.print('.');
-        delay(500);
-    }
-    Serial.println(WiFi.localIP());
-}
+// void Clock_::init_WiFi(const char* ssid, const char* password) {
+//     WiFi.mode(WIFI_STA);
+//     WiFi.begin(ssid, password);
+//     Serial.print("Connexion au WiFi...");
+//     while (WiFi.status() != WL_CONNECTED) {
+//         Serial.print('.');
+//         delay(500);
+//     }
+//     Serial.println(WiFi.localIP());
+// }
 
 void Clock_::sync_rtc() {
     const char* ntp_server = "pool.ntp.org"; // Serveur NTP pour obtenir l'heure

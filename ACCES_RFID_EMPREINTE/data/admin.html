@@ -73,6 +73,7 @@
             font-size: 24px;
             font-weight: bold;
             color: #6D28D9;
+            margin: auto;
         }
 
         .content-header .filter {
@@ -154,10 +155,10 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="profile">
-                <img src="../img/logo.png" alt="">
-                <div>
+                <!-- <img src="../img/logo.png" alt=""> -->
+                <!-- <div> -->
                     <p>Admin</p>
-                </div>
+                <!-- </div> -->
             </div>
             <nav>
                 <ul>
@@ -172,33 +173,33 @@
         <div class="content">
             <div class="content-header">
                 <h1>DASHBOARD</h1>
-                <div class="filter">
+                <!-- <div class="filter">
                     <input type="text" placeholder="Filtrer...">
                     <button>Filtrer</button>
-                </div>
+                </div> -->
             </div>
 
             <!-- Dashboard Stats -->
             <div class="dashboard-stats">
                 <div class="stat">
-                    <h2>ENTREES</h2>
-                    <p class="up">2 ▲</p>
+                    <!-- <h2>ENTREES</h2>
+                    <p class="up">2 ▲</p> -->
                 </div>
                 <div class="stat">
-                    <h2>SORTIES</h2>
-                    <p>4 ▼</p>
+                    <!-- <h2>SORTIES</h2>
+                    <p>4 ▼</p> -->
                 </div>
                 <div class="stat">
                     <h2>NOMBRE D'EMPLOYES</h2>
-                    <p class="down">12</p>
+                    <p class="down">{{NBR}}</p>
                 </div>
             </div>
 
             <!-- List Section -->
-            <div class="list-section">
+            <!-- <div class="list-section">
                 <h2>LISTE</h2>
                 <p>Jhon Ross</p>
-            </div>
+            </div> -->
         </div>
     </div>
     <script>
@@ -206,10 +207,13 @@
         add_user_button.addEventListener('click',function(){
             window.location.href = '/add_user'; // add user
         });
-        // const setting_button = document.getElementById('setting');
-        // setting_button.addEventListener('click',function(){
-        //     window/location.href = '/setting.html'; //
-        // })
+
+        //const delete_user = document.getElementById('sett')
+        
+        const setting_button = document.getElementById('setting');
+        setting_button.addEventListener('click',function(){
+            window.location.href = '/handle_delete'; //
+        });
     </script>
 </body>
 
