@@ -59,7 +59,7 @@ Getting Started
 Clone the repository:
 bash
 Copier le code
-git clone https://github.com/yourusername/your-repo-name.git
+git clone https://github.com/waliyiYOUSSAO/rfid_printfoot_blolab.git
 Upload the code to your ESP microcontroller.
 Ensure the necessary libraries (e.g., LittleFS, MFRC522, ESP8266WiFi, HTTPSRedirect) are installed.
 Customize the code for your environment, such as setting the correct Wi-Fi credentials and Google Sheets API details.
