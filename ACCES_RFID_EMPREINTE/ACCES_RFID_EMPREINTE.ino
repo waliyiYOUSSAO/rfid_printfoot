@@ -1,14 +1,16 @@
+#include <ESP8266WiFi.h>
 #include <Arduino.h>
 #include <SPI.h>
 #include <MFRC522.h>
 #include <LiquidCrystal_I2C.h>
-#include "clock_function.h"
-#include <Wire.h>
+// #include "clock_function.h"
+// #include <Wire.h>
 #include <ESP8266WebServer.h>
 #include <LittleFS.h>
-#include <EEPROM.h>
 #include "HTTPSRedirect.h"
 #include <ESP8266HTTPClient.h>
+#include <Wire.h>
+#include <RTClib.h>
 
 ESP8266WebServer server(80); // Web server port
 
@@ -30,10 +32,14 @@ const uint8_t SCL_PIN = D3;
 // Prototypes
 //String rfid_read();
 
+
+
 // Creation of instances
-Clock_ clock_;
+
 MFRC522 rfid(SS_PIN, RST_PIN);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
+RTC_DS3231 rtc;
+
 
 const char *GScriptId = "AKfycbxJGJGBfDyXlDvqs6OPc2cost_l916VmRwPUW46wIEPR3gLqQ_LAtQYU--hs_yu8EEa";
 
@@ -78,40 +84,76 @@ int in_and_out = 0;
 int number_int = 0;
 bool is_connected = false;
 int number_connect = 0;
+
+// SETUP
 void setup() {
     Serial.begin(115200);
     //buzzer initialization  
-    
-    WiFi.config(IP, gateway, subnet, dns);
+    // WiFi.config(IP, gateway, subnet, dns);
 
-    // Initialize Clock
-    clock_.Begin();
-    
+        
     
     while(!is_connected){
       switch (number_connect){
       case 0:
-        wifi_connection("HUAWEI-2.4G-c9bh","YOUSSAO@2024");
-        break;
-      case 1:
         wifi_connection("USER_0BD0F6","s2PAhtaL");
         break;
+      case 1:
+        wifi_connection("Youss","12345678");
+        break;
+      case 2:
+        wifi_connection("youss_pc","youss220605");
+        break;
+      case 3:
+        wifi_connection("HUAWEI-2.4G-c9bh","albako@2013");
+        break;        
       default :
         Serial.println("Impossible de se connecter à l'un des WiFi disponible");
         break;
       }
     }
-    
-
-    // USER_0BD0F6 s2PAhtaL   HUAWEI-2.4G-c9bh
-    clock_.sync_rtc();
 
     // Initialize RFID
     rfid_init();
 
     // Initialize LCD
-    lcd_init();
 
+    lcd.begin(16,2);
+    lcd.backlight();
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Initializing...");
+    
+    // Initialize RTC
+    if (!rtc.begin()) {
+        Serial.println("Couldn't find RTC");
+        lcd.setCursor(0, 1);
+        lcd.print("RTC Not Found!");
+        while (1) yield();  // Avoid WDT reset
+    }
+    rtc.adjust(DateTime(2024, 8, 31, 23, 59, 0)); 
+    
+    // SETUP SERVER ROUTES
+    server.on("/", HTTP_GET, handle_login);
+    server.on("/login", HTTP_POST, handle_login_form);
+    server.on("/admin", HTTP_GET, handle_admin);
+    server.on("/add_user", HTTP_GET, handle_add_user);
+    server.on("/add_user", HTTP_POST, handle_add_user_form);
+    server.on("/handle_delete",HTTP_GET,handle_setting);
+    server.on("/delete_user",HTTP_GET,handle_delete_user);
+    server.on("/set_mode", HTTP_GET, handle_set_mode);
+    server.on("/system", HTTP_GET,handle_system);
+    
+    // END SETUP SERVER ROUTES
+    
+    // Start the server
+    server.begin();
+    Serial.println("Server started");
+    if (!LittleFS.begin()) {
+        Serial.println("Failed to mount file system");
+        return;
+    }
+    /////////////////////////////////////////////////////////
     client = new HTTPSRedirect(httpsPort);
     client->setInsecure();
     client->setPrintResponseBody(true);
@@ -137,34 +179,68 @@ void setup() {
   delete client;    // delete HTTPSRedirect object
   client = nullptr; // delete HTTPSRedirect object
 
-    // Initialize LittleFS
-    if (!LittleFS.begin()) {
-        Serial.println("Failed to mount file system");
-        return;
-    }
 
-    // Setup server routes
-    server.on("/", HTTP_GET, handle_login);
-    server.on("/login", HTTP_POST, handle_login_form);
-    server.on("/admin", HTTP_GET, handle_admin);
-    server.on("/add_user", HTTP_GET, handle_add_user);
-    server.on("/add_user", HTTP_POST, handle_add_user_form);
-    server.on("/handle_delete",HTTP_GET,handle_setting);
-    server.on("/delete_user",HTTP_GET,handle_delete_user);
+  if (!rtc.begin()) {
+    Serial.println("Couldn't find RTC");
+    lcd.setCursor(0, 1);
+    lcd.print("RTC Not Found!");
+    // while (1) yield();  // Avoid WDT reset
+  }
     
-    // Start the server
-    server.begin();
-    Serial.println("Server started");
+
+    
 }
 String last_card = "";
-void loop() {
-  
+
+String show_mode = "";
+void loop() { // START OF LOOP FUNCTION ////////////////////////////////////////////////////////////////////////////////////////
+    static unsigned long lastUpdate = 0;
+    unsigned long currentMillis = millis();
+
+    if (currentMillis - lastUpdate >= 1000) {
+        lastUpdate = currentMillis;
+
+        DateTime now = rtc.now();
+        lcd.setCursor(0, 0);
+        lcd.print(now.year(), DEC);
+        lcd.print("/");
+        printTwoDigits(now.month());
+        lcd.print("/");
+        printTwoDigits(now.day());
+        lcd.print(",");
+        printTwoDigits(now.hour());
+        lcd.print(":");
+        printTwoDigits(now.minute());
+        lcd.print(":");
+        printTwoDigits(now.second());
+
+        Serial.print("Current Date: ");
+        Serial.print(now.year(), DEC);
+        Serial.print("/");
+        printTwoDigits(now.month());
+        Serial.print("/");
+        printTwoDigits(now.day());
+        Serial.print("  Current Time: ");
+        printTwoDigits(now.hour());
+        Serial.print(":");
+        printTwoDigits(now.minute());
+        Serial.print(":");
+        printTwoDigits(now.second());
+        Serial.println();
+    }
+
     server.handleClient();
-    lcd.setCursor(0, 0);
-    lcd.print(clock_.show_date());
+    lcd.setCursor(0,1);
+    
+    lcd.print(show_mode);
     entered_exit_rfid();
 }
+ // END OF LOOP FUNCTION////////////////////////////////////////////////////////////////////////////////////
+
+
+
 void wifi_connection(String ssid, String password){
+
       static unsigned long time_connect = 0;
       WiFi.mode(WIFI_STA);
       WiFi.begin(ssid, password);
@@ -183,7 +259,7 @@ void wifi_connection(String ssid, String password){
         number_connect ++;
       }
       return ;
-    }
+}
 void handle_login() {
     serve_file("/login.html");
 }
@@ -194,6 +270,7 @@ void handle_admin() {
   int number_employe = count_employe("/info.txt");
   admin_content.replace("{{NBR}}", String (number_employe));
   server.send(200,"text/html",admin_content);
+  
 }
 
  void handle_add_user() {
@@ -219,12 +296,11 @@ void handle_add_user_form() {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.clear();
-      lcd.print("  VOUS POUVEZ");
+      lcd.print("TRAITEMENT...");
       lcd.setCursor(0, 1);
-      lcd.print("RETIRE LA CARTE");
       delay(2000);
       lcd.clear();
-      save_card_info(rfid_string,first_name,last_name,department);
+      save_card_info(rfid_string, first_name, last_name, department);
 
       // send information in registered user sheet
     }
@@ -249,7 +325,7 @@ void handle_add_user_form() {
     Serial.println(last_name);
     Serial.println(department);
     Serial.println(rfid_string);
-    send_data("Registered Users",rfid_string,first_name,"None","00:00");
+    // save_card_info(rfid_string, first_name, last_name, department);
     // Reset temporary variablesp
     first_name = "";
     last_name = "";
@@ -322,7 +398,6 @@ void handle_setting() {
 void handle_delete_user(){
   if(server.hasArg("id")){
     String user_id = server.arg("id");
-    Serial.println(user_id);
     String deleted_firstname = name_after_verification("/info.txt",user_id);
     send_data("Deleted Users",user_id,deleted_firstname,"None","00:00");
     File info_file = LittleFS.open("/info.txt","r");
@@ -339,11 +414,13 @@ void handle_delete_user(){
     info_file = LittleFS.open("/info.txt","w");
     info_file.print(file_content);
     info_file.close();
-
-    server.sendHeader("Location","/admin",true);
-
+    //server.send(200, "text/html", );
+    server.sendHeader("Location", "/admin",true);
+    server.send(302,"text/html","");
+    
   } else{
     server.send(400,"text/plain", "User ID not provided");
+    
   }
 
 
@@ -381,6 +458,51 @@ String read_html(String path){
     return html_content;
 }
 
+void handle_system(){
+  handle_html("/setting.html");
+}
+
+void handle_html(String path){
+  File file = LittleFS.open(path, "r");
+        if (file) {
+            server.streamFile(file, "text/html");
+            file.close();
+        } else {
+            server.send(404, "text/plain", "File not found");
+        }
+}
+
+void handle_set_mode() {
+  String mode = server.arg("mode");
+  Serial.println(show_mode);
+  switch (mode.toInt()){
+    case 1:
+      // lcd.clear();
+      // lcd.setCursor(0, 1);
+      show_mode = "MODE BADGE      ";
+      break;
+    case 2:
+      // lcd.clear();
+      // lcd.setCursor(0, 1);
+      show_mode = "MODE EMPREINTE  ";
+      break;
+    case 3:
+      // lcd.clear();
+      // lcd.setCursor(0, 1);
+      show_mode = "MODE DOUBLE     ";
+      break;
+    default:
+      show_mode = "";
+  }
+  
+}
+
+
+
+
+void reset_action(){
+  //
+}
 // All_info all_information(String path){
 //   All_info all_info = {"","","",""};
 //   File info_file = LittleFS.open(path, 'r');

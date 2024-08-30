@@ -63,29 +63,29 @@ void save_card_info(String card_id, String first_name, String last_name, String 
 
     String user_info = first_name + "," + last_name + "," + department;
     file.println(card_id + "," + user_info);
-    // send_data("Registered Users",card_id,first_name,"None","00:00");
     file.close();
-  //  lcd.print("User Registered");
-    Serial.println("Utilisateur Ajouté");
+    send_data("Registered Users", card_id, first_name, "None", "00:00");
+    // send_registered_data("Registered Users",card_id, first_name, last_name, department, "None", "00:00");
+    Serial.println("UTILISATEUR AJOUTE");
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.clear();
-    lcd.print("Utilisateur");
+    lcd.print("UTILISATEUR");
     lcd.setCursor(0, 1);
-    lcd.print("   Ajouté");
-    delay(3000);
+    lcd.print("   AJOUTE");
+    delay(2000);
     lcd.clear();
     readFile("/info.txt");
     //readFile("/cards.txt");
   }
   else{
-    Serial.println("Utilisateur existant");
+    Serial.println("UTILISATEUR EXISTANT");
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.clear();
-    lcd.print("Utilisateur");
+    lcd.print("UTILISATEUR");
     lcd.setCursor(0, 1);
-    lcd.print("   Existant");
+    lcd.print("   EXISTANT");
     delay(3000);
     lcd.clear();
 
@@ -223,7 +223,7 @@ void display_some(String sentence_1, String sentence_2){ // display somethings
       
         lcd.clear();
         lcd.setCursor(0, 0);
-        lcd.print("     "+sentence_1);
+        lcd.print(sentence_1);
         lcd.setCursor(0, 1);
         lcd.print(sentence_2);
         delay(2000);
@@ -268,6 +268,41 @@ void send_data(String sheet_name, String rfid_string, String first_name, String 
   // A delay of several seconds is required before publishing again    
   //delay(1000);
 }
+
+// void send_registered_data(String sheet_name, String rfid_string, String first_name, String last_name, String department, String statut,String hour) {
+//   static bool flag = false;
+//   if (!flag) {
+//     client = new HTTPSRedirect(httpsPort);
+//     client->setInsecure();
+//     flag = true;
+//     client->setPrintResponseBody(true);
+//     client->setContentTypeHeader("application/json");
+//   }
+  
+//   if (client != nullptr) {
+//     if (!client->connected()) {
+//       client->connect(host, httpsPort);
+//     }
+//   } else {
+//     Serial.println("Error creating client object!");
+//   }  
+//   // Create json object string to send to Google Sheets
+//   String payload = "{\"sheet_name\":\"" + sheet_name + "\",\"values\":\"" + first_name + "," + last_name + "," + department + "," + statut + "," + hour +"\"}";
+  
+//   // Publish data to Google Sheets
+//   Serial.println("Publishing data...");
+//   Serial.println(payload);
+  
+//   if (client->POST(url, host, payload)) { 
+    
+//   } else {
+//     // Do stuff here if publish was not successful
+//     Serial.println("Error while connecting");
+//   }
+
+//   // A delay of several seconds is required before publishing again    
+//   //delay(1000);
+// }
 
 String name_after_verification(String path, String card) {
   File file = LittleFS.open(path, "r");

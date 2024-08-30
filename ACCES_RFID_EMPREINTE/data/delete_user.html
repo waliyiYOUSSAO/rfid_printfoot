@@ -122,17 +122,16 @@
     </div>
     <script>
         function deleteUser(user_id){
-            if(confirm("Voulez vous vraiment supprimer cet utilisateur ?"))	{
+            // if(confirm("Voulez vous vraiment supprimer cet utilisateur ?"))	{
                 var xhttp = new XMLHttpRequest();
                 xhttp.onreadystatechange = function(){
                     if(this.readyState == 4 && this.status == 200){
-                        alert("User delete succesfully !")
-                        location.href("/admin");
+                        window.location.href = '/admin';
                     }
                 };
                 xhttp.open("GET","/delete_user?id=" + user_id, true);
                 xhttp.send();
-            }
+            // }
 
         }
 

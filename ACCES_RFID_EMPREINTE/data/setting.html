@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            background-color: #faf5ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .dashboard {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 35rem;
+            position: relative; /* Make it a positioning context */
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            color: #6b46c1;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .section-password {
+            display: flex;
+            flex-direction: column;
+            align-items: center;        /* Centers the title horizontally */
+            justify-content: flex-end;  /* Keeps the password field at the bottom */
+            padding: 20px;
+            border: 1px solid #4a5568;
+            border-radius: 0.5rem;
+            background-color: #e2e8f0;
+            width: 250px;
+            height: 125px;
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .section-password h3 {
+            padding-bottom: 15%;
+            margin: 0;
+            text-align: center;          /* Ensures text is centered within the element */
+            width: 100%;                 /* Optional: Ensures h3 takes up full width */
+        }
+
+        .input-field {
+            width: 100%;
+        }
+
+        .section {
+            flex: 1;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            background-color: #f7fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 1rem;
+            
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .input-field, .select-field {
+            width: 90%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-field:focus, .select-field:focus {
+            outline: none;
+            border-color: #805ad5;
+        }
+
+        .btn {
+            width: 100%;
+            background-color: #6b46c1;
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            margin-top: 2rem;
+            align-self: center;
+            max-width: 10rem;
+        }
+
+        .btn:hover {
+            background-color: #553c9a;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <h2>Setting Dashboard</h2>
+
+        <!-- Dashboard Row -->
+        <div class="dashboard-row">
+            <!-- Mode Selection Section -->
+            <div class="section">
+                <h3>Select Mode</h3>
+                <!-- <form action="/set_mode" method="get"> -->
+                <select id="mode" name="mode" class="select-field">
+                    <option value="1">Mode Badge</option>
+                    <option value="2">Mode Empreinte</option>
+                    <option value="3">Mode Double</option>
+                </select>
+                <div>
+                    <input type="submit" id="set_mode" class="btn" value="Sélectionner le mode" onclick="send_mode()">
+                </div>
+            <!-- </form> -->
+                
+            </div>
+
+            <!-- Date and Time Section -->
+            <div class="section">
+                <h3>Date and Time Settings</h3>
+                <label for="date">Select Date</label>
+                <input type="date" id="date" class="input-field">
+                <label for="time">Select Time</label>
+                <input type="time" id="time" class="input-field">
+                <input type="submit" id="set_date_time" class="btn" value="Sauvegarder">
+            </div>            
+            
+        </div>   
+        
+    </div>
+    <!-- Password Section -->
+    <!-- <div class = "dashboard-password">
+        <div class="section-password">
+            <form action="/admin" method="post">
+                <h3>Password</h3>
+                <input type="password" id="password" class="input-field" placeholder="Enter your password">
+            </form>
+                
+        </div> -->
+    </div>
+    <script>
+        function send_mode() {
+            var mode = document.getElementById('mode').value;
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "/set_mode?mode=" + mode, true);
+            xhttp.send();
+        }
+    </script>
+</body>
+
+</html>

@@ -4,11 +4,11 @@ void rfid_init(){
   Serial.println("RFID Initialization Successful");
 }
 
-void lcd_init(){
-  Wire.begin(SDA_PIN, SCL_PIN);
-  lcd.begin(16, 2);
-  lcd.backlight();
-}
+// void lcd_init(){
+//   // Wire.begin(SDA_PIN, SCL_PIN);
+//   lcd.begin(16, 2);
+//   lcd.backlight();
+// }
 
 
 

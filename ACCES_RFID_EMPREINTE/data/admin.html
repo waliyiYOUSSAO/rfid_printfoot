@@ -101,6 +101,7 @@
             display: flex;
             gap: 16px;
             margin-bottom: 24px;
+            
         }
 
         .dashboard-stats .stat {
@@ -115,12 +116,14 @@
             color: #6D28D9;
             font-size: 18px;
             margin-bottom: 8px;
+            text-align: center;
         }
 
         .dashboard-stats .stat p {
             font-size: 24px;
             font-weight: bold;
             margin: 0;
+            text-align: center;
         }
 
         .dashboard-stats .stat p.up {
@@ -164,6 +167,7 @@
                 <ul>
                     <li id="add-user">Ajout Utilisateur</li>
                     <li id="setting">Paramètre Utilisateur</li>
+                    <li id="system">Paramètre Système</li>
                     <li id="history">Historique</li>
                 </ul>
             </nav>
@@ -181,14 +185,14 @@
 
             <!-- Dashboard Stats -->
             <div class="dashboard-stats">
-                <div class="stat">
-                    <!-- <h2>ENTREES</h2>
-                    <p class="up">2 ▲</p> -->
-                </div>
-                <div class="stat">
-                    <!-- <h2>SORTIES</h2>
-                    <p>4 ▼</p> -->
-                </div>
+                <!--<div class="stat">
+                     <h2>ENTREES</h2>
+                    <p class="up">2 ▲</p>
+                </div> -->
+                <!--<div class="stat">
+                     <h2>SORTIES</h2>
+                    <p>4 ▼</p> 
+                </div>-->
                 <div class="stat">
                     <h2>NOMBRE D'EMPLOYES</h2>
                     <p class="down">{{NBR}}</p>
@@ -214,6 +218,11 @@
         setting_button.addEventListener('click',function(){
             window.location.href = '/handle_delete'; //
         });
+
+        const system_button = document.getElementById('system');
+        system_button.addEventListener('click',function(){
+            window.location.href = '/system'; // setting date time and others
+        })
     </script>
 </body>
 
