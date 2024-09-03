@@ -155,10 +155,10 @@
             <div class="section">
                 <h3>Date and Time Settings</h3>
                 <label for="date">Select Date</label>
-                <input type="date" id="date" class="input-field">
+                <input type="date" id="date" name="date" class="input-field">
                 <label for="time">Select Time</label>
-                <input type="time" id="time" class="input-field">
-                <input type="submit" id="set_date_time" class="btn" value="Sauvegarder">
+                <input type="time" id="time" name="time" class="input-field">
+                <input type="submit" id="set_date_time" class="btn" value="Sauvegarder" onclick="set_date()">
             </div>            
             
         </div>   
@@ -179,6 +179,14 @@
             var mode = document.getElementById('mode').value;
             var xhttp = new XMLHttpRequest();
             xhttp.open("GET", "/set_mode?mode=" + mode, true);
+            xhttp.send();
+        }
+
+        function set_date(){
+            var date = document.getElementById('date').value;
+            var time = document.getElementById('time').value;
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("GET", "/set_date_time?date="+ date +"&time=" + time, true);
             xhttp.send();
         }
     </script>

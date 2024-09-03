@@ -41,7 +41,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 RTC_DS3231 rtc;
 
 
-const char *GScriptId = "AKfycbxJGJGBfDyXlDvqs6OPc2cost_l916VmRwPUW46wIEPR3gLqQ_LAtQYU--hs_yu8EEa";
+const char *GScriptId = "AKfycbxuC20FX9Vs9_qDJfiBYI5CWc-vaAS8vUlg-1BdJdi8Rle-Kk6seZqbGyKmDvj0hAPY7g";
 
 // Enter command (insert_row or append_row) and your Google Sheets sheet name (default is Sheet1):
 //String payload_base =  "{\"command\": \"insert_row\", \"sheet_name\":\"" + sheet_name +, \"values\": ";
@@ -56,7 +56,7 @@ HTTPSRedirect* client = nullptr;
 
 //AdresseIPFixe
 IPAddress IP(192, 168, 1, 200);       //adresse fixe
-IPAddress gateway(192, 168, 1, 1);  //passerelle par défaut // 192.168.100.1   //192.168.1.1
+IPAddress gateway(192, 168, 100, 1);  //passerelle par défaut // 192.168.100.1   //192.168.1.1
 IPAddress subnet(255, 255, 255, 0);  //masque de sous-réseau
 IPAddress dns(8, 8, 8, 8);           //DNS
 
@@ -68,6 +68,10 @@ const String password = "1234567890";
 String first_name = "";
 String last_name = "";
 String department = "";
+
+String send_time = "";
+String send_date = "";
+int time_minute;
 struct Last_name_department_sheet{
   String last_name_sheet;
   String department_sheet;
@@ -84,14 +88,16 @@ int in_and_out = 0;
 int number_int = 0;
 bool is_connected = false;
 int number_connect = 0;
-
+int ye = 0;
+int mo = 0;
+int da = 0;
+int ho = 0;
+int mi = 0;
 // SETUP
 void setup() {
     Serial.begin(115200);
-    //buzzer initialization  
-    // WiFi.config(IP, gateway, subnet, dns);
-
-        
+    // buzzer initialization  
+    WiFi.config(IP, gateway, subnet, dns);
     
     while(!is_connected){
       switch (number_connect){
@@ -117,7 +123,7 @@ void setup() {
     rfid_init();
 
     // Initialize LCD
-
+    Wire.begin();
     lcd.begin(16,2);
     lcd.backlight();
     lcd.clear();
@@ -131,7 +137,12 @@ void setup() {
         lcd.print("RTC Not Found!");
         while (1) yield();  // Avoid WDT reset
     }
-    rtc.adjust(DateTime(2024, 8, 31, 23, 59, 0)); 
+    lcd.clear();
+    rtc.adjust(DateTime(__DATE__, __TIME__));  // Set RTC to compile time
+    // rtc.adjust(DateTime(ye, mo, da, ho, mi, 0)); 
+
+    
+    
     
     // SETUP SERVER ROUTES
     server.on("/", HTTP_GET, handle_login);
@@ -142,7 +153,9 @@ void setup() {
     server.on("/handle_delete",HTTP_GET,handle_setting);
     server.on("/delete_user",HTTP_GET,handle_delete_user);
     server.on("/set_mode", HTTP_GET, handle_set_mode);
+    server.on("/set_date_time", HTTP_GET, handle_set_date_time);
     server.on("/system", HTTP_GET,handle_system);
+
     
     // END SETUP SERVER ROUTES
     
@@ -178,17 +191,7 @@ void setup() {
   }
   delete client;    // delete HTTPSRedirect object
   client = nullptr; // delete HTTPSRedirect object
-
-
-  if (!rtc.begin()) {
-    Serial.println("Couldn't find RTC");
-    lcd.setCursor(0, 1);
-    lcd.print("RTC Not Found!");
-    // while (1) yield();  // Avoid WDT reset
-  }
-    
-
-    
+   
 }
 String last_card = "";
 
@@ -196,11 +199,9 @@ String show_mode = "";
 void loop() { // START OF LOOP FUNCTION ////////////////////////////////////////////////////////////////////////////////////////
     static unsigned long lastUpdate = 0;
     unsigned long currentMillis = millis();
-
+    DateTime now = rtc.now();
     if (currentMillis - lastUpdate >= 1000) {
         lastUpdate = currentMillis;
-
-        DateTime now = rtc.now();
         lcd.setCursor(0, 0);
         lcd.print(now.year(), DEC);
         lcd.print("/");
@@ -208,23 +209,29 @@ void loop() { // START OF LOOP FUNCTION ////////////////////////////////////////
         lcd.print("/");
         printTwoDigits(now.day());
         lcd.print(",");
+        send_date = (now.day() < 10 ? "0" : "") + String(now.day()) + "/" + (now.month() < 10 ? "0" : "") + String(now.month(),DEC) + "/" + String(now.year(),DEC);
+        
         printTwoDigits(now.hour());
         lcd.print(":");
         printTwoDigits(now.minute());
         lcd.print(":");
         printTwoDigits(now.second());
-
+        
         Serial.print("Current Date: ");
         Serial.print(now.year(), DEC);
         Serial.print("/");
         printTwoDigits(now.month());
         Serial.print("/");
         printTwoDigits(now.day());
+        
         Serial.print("  Current Time: ");
         printTwoDigits(now.hour());
         Serial.print(":");
         printTwoDigits(now.minute());
         Serial.print(":");
+        send_time = (now.hour() < 10 ? "0" : "") + String(now.hour()) + ":" + (now.minute() < 10 ? "0" : "") + String(now.minute());
+        time_minute = now.hour() * 60 + now.minute();
+        Serial.println(time_minute);
         printTwoDigits(now.second());
         Serial.println();
     }
@@ -233,11 +240,18 @@ void loop() { // START OF LOOP FUNCTION ////////////////////////////////////////
     lcd.setCursor(0,1);
     
     lcd.print(show_mode);
+    if (WiFi.status() == WL_CONNECTED && (time_minute < 510 || time_minute >= 570)){
+      readAndDeleteFirstLine("/store.txt");
+    }
     entered_exit_rfid();
 }
  // END OF LOOP FUNCTION////////////////////////////////////////////////////////////////////////////////////
 
-
+void rfid_init(){
+  SPI.begin();
+  rfid.PCD_Init();
+  Serial.println("RFID Initialization Successful");
+}
 
 void wifi_connection(String ssid, String password){
 
@@ -399,7 +413,8 @@ void handle_delete_user(){
   if(server.hasArg("id")){
     String user_id = server.arg("id");
     String deleted_firstname = name_after_verification("/info.txt",user_id);
-    send_data("Deleted Users",user_id,deleted_firstname,"None","00:00");
+    
+    send_data("Deleted Users",user_id,deleted_firstname,"None",send_time, send_date);
     File info_file = LittleFS.open("/info.txt","r");
     String file_content = "";
     // send information in deleted user sheet
@@ -497,7 +512,25 @@ void handle_set_mode() {
   
 }
 
+void handle_set_date_time(){
+  String date = server.arg("date");
+  String year_str = date.substring(0,4);
+  ye = year_str.toInt();
+  String month_str = date.substring(5,7);
+  int mo = month_str.toInt();
+  String day_str = date.substring(8,10);
+  int da = day_str.toInt();
+  Serial.println(da);
+  String time = server.arg("time");
+  String hour_str = time.substring(0,2);
+  int ho = hour_str.toInt();
+  String minute_str = time.substring(3,5);
+  int mi = minute_str.toInt();
 
+  rtc.adjust(DateTime(ye, mo, da, ho, mi, 0));
+  
+  // Serial.println(date + " " + time);
+}
 
 
 void reset_action(){

@@ -26,8 +26,6 @@ void serve_file(const char * path){ // function to serve file
   file.close();
 }
 
-
-
 void handle_login_form() {
     String username_arg = server.arg("username");
     String password_arg = server.arg("password");
@@ -39,7 +37,6 @@ void handle_login_form() {
         server.send(401, "text/html", "<h1>Access Denied</h1><p>Invalid password</p>");
     }
 }
-
 
 String wait_for_rfid() {
   static unsigned long time_0 = 0; // Initialisation du temps
@@ -64,8 +61,8 @@ void save_card_info(String card_id, String first_name, String last_name, String 
     String user_info = first_name + "," + last_name + "," + department;
     file.println(card_id + "," + user_info);
     file.close();
-    send_data("Registered Users", card_id, first_name, "None", "00:00");
-    // send_registered_data("Registered Users",card_id, first_name, last_name, department, "None", "00:00");
+    send_data("Registered Users", card_id, first_name, "None", send_time, send_date);
+    
     Serial.println("UTILISATEUR AJOUTE");
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -75,7 +72,7 @@ void save_card_info(String card_id, String first_name, String last_name, String 
     lcd.print("   AJOUTE");
     delay(2000);
     lcd.clear();
-    readFile("/info.txt");
+    // readFile("/info.txt");
     //readFile("/cards.txt");
   }
   else{
@@ -151,7 +148,6 @@ int in_or_out(String in_out_id, String path) {
             Serial.println("Failed to open file for writing");
             return -1;
         }
-
         // Write the new entry to the file
         file.println(in_out_id + "," + String(number_int));
         file.close();
@@ -165,8 +161,13 @@ int in_or_out(String in_out_id, String path) {
         Serial.print("Current number_in_out value: ");
         Serial.println(number_int);
 
-        // Increment the in/out counter
-        number_int++;
+        if (time_minute == 0){
+          // Increment the in/out counter
+          number_int = 0;
+        }else{
+          number_int ++;
+        }
+        
 
         // Open the file to read and update its contents
         File file = LittleFS.open(path, "r");
@@ -229,10 +230,8 @@ void display_some(String sentence_1, String sentence_2){ // display somethings
         delay(2000);
         lcd.clear();
 }
-// Global or class-level variables
 
-
-void send_data(String sheet_name, String rfid_string, String first_name, String statut, String hour) {
+void send_data(String sheet_name, String rfid_string, String first_name, String statut, String hour, String date) {
   static bool flag = false;
   if (!flag) {
     client = new HTTPSRedirect(httpsPort);
@@ -252,7 +251,7 @@ void send_data(String sheet_name, String rfid_string, String first_name, String 
   
   Last_name_department_sheet lastname_department = extract_last_name_and_department("/info.txt",rfid_string);
   // Create json object string to send to Google Sheets
-  String payload = "{\"sheet_name\":\"" + sheet_name + "\",\"values\":\"" + first_name + "," + lastname_department.last_name_sheet + "," + lastname_department.department_sheet + "," + statut + "," + hour +"\"}";
+  String payload = "{\"sheet_name\":\"" + sheet_name + "\",\"values\":\"" + first_name + "," + lastname_department.last_name_sheet + "," + lastname_department.department_sheet + "," + statut + "," + hour + "," + date +"\"}";
   
   // Publish data to Google Sheets
   Serial.println("Publishing data...");
@@ -268,41 +267,6 @@ void send_data(String sheet_name, String rfid_string, String first_name, String 
   // A delay of several seconds is required before publishing again    
   //delay(1000);
 }
-
-// void send_registered_data(String sheet_name, String rfid_string, String first_name, String last_name, String department, String statut,String hour) {
-//   static bool flag = false;
-//   if (!flag) {
-//     client = new HTTPSRedirect(httpsPort);
-//     client->setInsecure();
-//     flag = true;
-//     client->setPrintResponseBody(true);
-//     client->setContentTypeHeader("application/json");
-//   }
-  
-//   if (client != nullptr) {
-//     if (!client->connected()) {
-//       client->connect(host, httpsPort);
-//     }
-//   } else {
-//     Serial.println("Error creating client object!");
-//   }  
-//   // Create json object string to send to Google Sheets
-//   String payload = "{\"sheet_name\":\"" + sheet_name + "\",\"values\":\"" + first_name + "," + last_name + "," + department + "," + statut + "," + hour +"\"}";
-  
-//   // Publish data to Google Sheets
-//   Serial.println("Publishing data...");
-//   Serial.println(payload);
-  
-//   if (client->POST(url, host, payload)) { 
-    
-//   } else {
-//     // Do stuff here if publish was not successful
-//     Serial.println("Error while connecting");
-//   }
-
-//   // A delay of several seconds is required before publishing again    
-//   //delay(1000);
-// }
 
 String name_after_verification(String path, String card) {
   File file = LittleFS.open(path, "r");
@@ -389,8 +353,11 @@ void deleteFile(String path) {
     }
 }
 
-
 void entered_exit_rfid(){
+
+  bool is_first_time = false;
+  bool is_second_time = false;
+
   String card = rfid_read();
   String first_name_display = "";
   if(last_card != card){
@@ -402,9 +369,18 @@ void entered_exit_rfid(){
     int number_in_out = in_or_out(card, "/enter_exit.txt");
     String enter_or_exit = (number_in_out % 2 == 0 ) ? "   ARRIVE": "   DEPART";
     display_some(name_returned, enter_or_exit);
-    send_data("History Users", card, name_returned, enter_or_exit, "00:00");
-    
-    
+    if (time_minute >= 510 && time_minute < 570){
+      store_txt("/store.txt", card, name_returned, enter_or_exit, send_time, send_date);
+      readFile("/store.txt");
+    }else{
+      if(WiFi.status() == WL_CONNECTED){
+        send_data("History Users",card, name_returned, enter_or_exit, send_time, send_date);
+      }
+      else{
+        store_txt("/store.txt", card, name_returned, enter_or_exit, send_time, send_date);
+        readFile("/store.txt");
+      }
+    }
   }
   else{
     Serial.println("ACCES REFUSE");
@@ -412,13 +388,118 @@ void entered_exit_rfid(){
     lcd.setCursor(0, 1);
     lcd.print(" ACCES REFUSE");
     delay(2000);
-    // digitalWrite(buzzer_pin, LOW);
-    // delay(500);
-    // Serial.println("piiiiiiii");
-    // digitalWrite(buzzer_pin,LOW);
-    // delay(500);
     lcd.clear();
   }
 
   }
+}
+
+void store_txt(String path, String id, String firstname, String status, String hour, String date) {
+  File store = LittleFS.open(path, "a");
+
+  if (!store) {
+    Serial.println("Impossible d'ouvrir le fichier");
+    return;
+  }
+
+  Last_name_department_sheet lastname_department = extract_last_name_and_department("/info.txt", id);
+  // Include the RFID ID at the beginning of the stored line
+  String store_ids = id + "," + firstname + "," + lastname_department.last_name_sheet + "," + lastname_department.department_sheet + "," + status + "," + hour + "," + date;
+  store.println(store_ids);
+  store.close();
+}
+
+
+
+void readAndDeleteFirstLine(String filePath) {
+    // Open the file in read mode
+    File file = LittleFS.open(filePath, "r");
+    if (!file) {
+        Serial.println("Failed to open file for reading");
+        return;
+    }
+    while(file.size()!= 0){
+      // Read the first line
+      String firstLine = file.readStringUntil('\n');
+
+      Serial.println("First line: " + firstLine);
+      extractData(firstLine);
+      Serial.println("ok");
+
+      // Create a string to hold the rest of the file content
+      String remainingContent = "";
+
+      // Read the rest of the file line by line
+      while (file.available()) {
+          String line = file.readStringUntil('\n');
+          remainingContent += line + "\n"; // Add each line to the remaining content
+      }
+
+      // Close the file after reading
+      file.close();
+
+      // Open the file in write mode to overwrite it
+      file = LittleFS.open(filePath, "w");
+      if (!file) {
+          Serial.println("Failed to open file for writing");
+          return;
+      }
+
+      // Write the remaining content back to the file
+      file.print(remainingContent);
+
+      // Close the file after writing
+      file.close();
+
+      Serial.println("First line deleted and file updated.");
+    }
+}
+
+void extractData(String line) {
+    // Trim the line to remove any leading or trailing whitespace
+    line.trim();
+
+    // Find the indices of the commas
+    int firstComma = line.indexOf(',');
+    int secondComma = line.indexOf(',', firstComma + 1);
+    int thirdComma = line.indexOf(',', secondComma + 1);
+    int fourthComma = line.indexOf(',', thirdComma + 1);
+    int fifthComma = line.indexOf(',', fourthComma + 1);
+    int sixthComma = line.indexOf(',', fifthComma + 1); // New comma for RFID ID
+
+    if (firstComma == -1 || secondComma == -1 || thirdComma == -1 || fourthComma == -1 || fifthComma == -1 || sixthComma == -1) {
+        Serial.println("Error: Invalid line format.");
+        return;
+    }
+
+    // Extract the substrings and then trim each one
+    String rfid_id = line.substring(0, firstComma); // Extract the RFID ID
+    rfid_id.trim();
+
+    String firstname = line.substring(firstComma + 1, secondComma);
+    firstname.trim();
+
+    String lastname = line.substring(secondComma + 1, thirdComma);
+    lastname.trim();
+
+    String department = line.substring(thirdComma + 1, fourthComma);
+    department.trim();
+
+    String statut = line.substring(fourthComma + 1, fifthComma);
+    statut.trim();
+
+    String send_time = line.substring(fifthComma + 1, sixthComma);
+    send_time.trim();
+
+    String send_date = line.substring(sixthComma + 1);
+    send_date.trim();
+    send_data("History Users", rfid_id, firstname, statut, send_time, send_date);
+    Serial.println("Data extracted:");
+    Serial.println("RFID ID: " + rfid_id);
+    Serial.println("firstname: " + firstname);
+    Serial.println("lastname: " + lastname);
+    Serial.println("department: " + department);
+    Serial.println("statut: " + statut);
+    Serial.println("send_time: " + send_time);
+    Serial.println("send_date: " + send_date);
 }
