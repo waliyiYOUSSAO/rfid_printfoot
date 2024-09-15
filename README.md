@@ -1,65 +1,135 @@
-# rfid_printfoot_blolab
+# README - Système de Gestion des Employés avec RFID
 
-RFID Access Control System
-This repository contains the code for an RFID-based access control system using an ESP microcontroller. The system is designed to manage entry and exit access for employees by reading RFID cards, storing user information, and logging access history.
+## Présentation du Système
+Ce système de gestion des employés repose sur une technologie de badges RFID, combinée à un microcontrôleur **ESP8266** et un module horloge pour la gestion du temps. Il permet de :
+- Suivre les horaires d'arrivée et de départ des employés.
+- Gérer les utilisateurs (ajout, suppression).
+- Stocker temporairement les données localement en l'absence de connexion réseau et de les synchroniser avec **Google Sheets** lorsque la connexion est rétablie.
+- Gérer les accès via un serveur Web intégré, affichant les informations sur un écran LCD.
 
-Features
-RFID Card Reading: Reads RFID cards to identify users.
-File Serving: Serves HTML files from the ESP's filesystem for web-based interfaces.
-User Authentication: Handles login authentication for accessing the admin panel.
-Card Information Storage: Saves user details (RFID ID, name, department) locally.
-In/Out Tracking: Tracks whether a user is entering or exiting based on RFID scans.
-Data Transmission: Sends data to Google Sheets for logging access history.
-User Information Retrieval: Retrieves and displays user details based on RFID scans.
-File Operations: Supports reading, writing, and deleting files on the ESP's filesystem.
-Functions
-String rfid_read()
-Reads the RFID card's unique identifier and returns it as a string.
+### Fonctionnement :
+Lorsque l'employé approche son badge RFID du lecteur, le microcontrôleur lit l'identifiant et enregistre les données dans **Google Sheets** via une connexion WiFi. En cas de perte de connexion, les données sont stockées localement.
 
-void serve_file(const char* path)
-Serves a file from the ESP's filesystem to the client, primarily used for serving HTML pages.
+## Fonctionnalités
+- **Ajout d'un utilisateur** : Enregistre un utilisateur et son badge RFID.
+- **Suppression d'un utilisateur** : Supprime l'utilisateur et son badge.
+- **Changement de mode** : Permet de basculer entre différents modes (par ex. Badge, Empreinte digitale).
+- **Historique des accès** : Enregistre l'historique des arrivées/départs et des modifications d'utilisateurs.
 
-void handle_login_form()
-Handles the login form submission, verifying the username and password and redirecting to the admin panel if successful.
+## Bibliothèques Principales
+- **ESP8266WiFi.h** : Gestion de la connexion WiFi.
+- **MFRC522.h** : Communication avec le lecteur RFID.
+- **RTClib.h** : Gestion de l'heure via le module RTC.
+- **LiquidCrystal_I2C.h** : Affichage sur l'écran LCD (protocole I2C).
+- **ESP8266WebServer.h** : Création d'un serveur Web pour la gestion des utilisateurs.
+- **LittleFS.h** : Stockage local des fichiers sur l'ESP8266.
+- **HTTPSRedirect.h** : Envoi sécurisé des données vers Google Sheets.
 
-String wait_for_rfid()
-Waits for an RFID card to be scanned, with a timeout of 5 seconds, and returns the card ID.
+## Matériel Utilisé
 
-void save_card_info(String card_id, String first_name, String last_name, String department)
-Saves the user information (RFID card ID, first name, last name, and department) to a file if the card ID is not already registered.
+### Partie Hardware :
+- **ESP8266**
+- **Lecteur RFID (RC522)**
+- **Badges RFID**
+- **Module Horloge DS3231**
+- **Écran LCD**
+- **Module de charge TP4056**
+- **Jumpers**
 
-void readFile(String path)
-Reads and prints the contents of a file, used to list registered employees.
+### Partie Software :
+- **Arduino IDE**
+- **Visual Studio Code (VSCode)**
 
-bool unicity(String path, String card_id)
-Checks if an RFID card ID already exists in the specified file to ensure uniqueness.
+## Installation
 
-int in_or_out(String in_out_id, String path)
-Determines whether a user is entering or exiting and updates the in/out status in the file.
+### Étape 1 : Préparer l'ESP8266 avec l'IDE Arduino
+1. **Télécharger et installer l'IDE Arduino** depuis [arduino.cc](https://www.arduino.cc/en/software).
+2. **Configurer l'ESP8266** :
+   - Ouvrir l'IDE Arduino.
+   - Aller dans **File > Preferences**.
+   - Dans "Additional Board Manager URLs", ajouter :
+     ```
+     https://arduino.esp8266.com/stable/package_esp8266com_index.json
+     ```
+   - Aller dans **Tools > Board > Board Manager** et installer **ESP8266**.
 
-void display_some(String sentence_1, String sentence_2)
-Displays a message on the LCD screen, typically used for showing entry or exit status.
+### Étape 2 : Installer les bibliothèques nécessaires
+Dans l'IDE Arduino :
+1. Aller dans **Sketch > Include Library > Manage Libraries**.
+2. Rechercher et installer les bibliothèques suivantes :
+   - **ESP8266WiFi**
+   - **MFRC522**
+   - **LiquidCrystal_I2C**
+   - **Wire**
+   - **ESP8266WebServer**
+   - **LittleFS**
+   - **HTTPSRedirect**
+   - **ESP8266HTTPClient**
+   - **RTClib**
 
-void send_data(String sheet_name, String rfid_string, String first_name, String statut, String hour)
-Sends user data to a specified Google Sheet for logging purposes.
+### Étape 3 : Câblage
+#### Connexions du RFID (RC522) avec l'ESP8266 :
+| RC522 | ESP8266 |
+|-------|---------|
+| SDA   | D8      |
+| SCK   | D5      |
+| MOSI  | D7      |
+| MISO  | D6      |
+| GND   | GND     |
+| 3.3V  | 3.3V    |
 
-String name_after_verification(String path, String card)
-Verifies the RFID card ID and returns the associated first name.
+#### Connexions du Module Horloge (DS3231) avec l'ESP8266 :
+| DS3231 | ESP8266 |
+|--------|---------|
+| SDA    | D2      |
+| SCL    | D1      |
+| VCC    | 3.3V    |
+| GND    | GND     |
 
-Last_name_department_sheet extract_last_name_and_department(String path, String card)
-Extracts the last name and department associated with an RFID card ID from the specified file.
+#### Connexions de l'Écran LCD avec l'ESP8266 :
+| LCD  | ESP8266 |
+|------|---------|
+| SCL  | D1      |
+| SDA  | D2      |
+| VCC  | VIN     |
+| GND  | GND     |
 
-void deleteFile(String path)
-Deletes a specified file from the ESP's filesystem.
+### Étape 4 : Préparation du Code
 
-void entered_exit_rfid()
-Handles the entry/exit process by reading the RFID card, verifying access, and updating the in/out status.
+#### 1. Créer un Google Sheets
+- Créer une nouvelle feuille Google Sheets avec les onglets suivants :
+  - **History Users**
+  - **Registered Users**
+  - **Deleted Users**
 
-Getting Started
-Clone the repository:
-bash
-Copier le code
-git clone https://github.com/waliyiYOUSSAO/rfid_printfoot_blolab.git
-Upload the code to your ESP microcontroller.
-Ensure the necessary libraries (e.g., LittleFS, MFRC522, ESP8266WiFi, HTTPSRedirect) are installed.
-Customize the code for your environment, such as setting the correct Wi-Fi credentials and Google Sheets API details.
+#### 2. Créer un Google Apps Script
+- Allez dans **Extensions > Apps Script** sur votre feuille Google Sheets.
+- Supprimez le code par défaut et collez le code du fichier **google_script.js**.
+- Remplacez `'VOTRE_ID_SHEET'` par l'ID de votre feuille Google (trouvé dans l'URL).
+
+#### 3. Déployer le Script
+- Allez dans **Déployer > Nouveau Déploiement**.
+- Choisissez le type **Web App**.
+- Définissez l'accès pour "Tout le monde".
+- Copiez l'URL et l'ID du script pour l'utiliser dans le code Arduino.
+
+### Étape 5 : Utiliser LittleFS pour Stocker Localement
+- Suivez le tutoriel [ici](https://arduino-esp8266.readthedocs.io/en/latest/filesystem.html) pour configurer LittleFS pour l'ESP8266.
+
+### Étape 6 : Modifier le Code Arduino
+- **Modifiez les informations administratives** dans le fichier `ACCES_RFID_EMPREINTE.ino`.
+  - Remplacez `Nom_UTILISATEUR` et `MOT_DE_PASSE`.
+- **Configurez les identifiants WiFi** :
+  - Remplacez `SSID_WIFI` et `PASSWORD` avec vos informations WiFi.
+- **Ajoutez l'ID de Google Apps Script** dans le code Arduino :
+  - Remplacez `GOOGLE_SCHEET_ID` par l'ID du script Google Apps généré.
+
+### Étape 7 : Téléverser le Code sur l'ESP8266
+- Une fois toutes les modifications effectuées, téléversez le code sur l'ESP8266 via l'IDE Arduino.
+
+---
+
+### Notes :
+- Ce système fonctionne en mode hors ligne et en ligne, stockant temporairement les données lorsque le réseau est indisponible.
+- Vous pouvez personnaliser les modes d'accès (par badge, empreinte digitale, etc.).
+
