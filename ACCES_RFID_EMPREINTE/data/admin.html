@@ -101,7 +101,7 @@
             display: flex;
             gap: 16px;
             margin-bottom: 24px;
-            
+
         }
 
         .dashboard-stats .stat {
@@ -150,6 +150,25 @@
         .list-section p {
             font-weight: bold;
         }
+
+        .button-link {
+            display: inline-block;
+            padding: 0px 0px;
+            background-color: transparent;
+            /* Couleur de fond */
+            color: white;
+            /* Couleur du texte */
+            text-decoration: none;
+            /* Supprime la décoration du lien (soulignement) */
+            border-radius: 5px;
+            /* Coins arrondis */
+            font-size: 16px;
+        }
+
+        .button-link:hover {
+            background-color: transparent;
+            /* Couleur de fond au survol */
+        }
     </style>
 </head>
 
@@ -160,7 +179,7 @@
             <div class="profile">
                 <!-- <img src="../img/logo.png" alt=""> -->
                 <!-- <div> -->
-                    <p>Admin</p>
+                <p>Admin</p>
                 <!-- </div> -->
             </div>
             <nav>
@@ -168,7 +187,7 @@
                     <li id="add-user">Ajout Utilisateur</li>
                     <li id="setting">Paramètre Utilisateur</li>
                     <li id="system">Paramètre Système</li>
-                    <li id="history">Historique</li>
+                    <li id="history">historique</li>
                 </ul>
             </nav>
         </div>
@@ -208,21 +227,26 @@
     </div>
     <script>
         const add_user_button = document.getElementById('add-user');
-        add_user_button.addEventListener('click',function(){
+        add_user_button.addEventListener('click', function () {
             window.location.href = '/add_user'; // add user
         });
 
         //const delete_user = document.getElementById('sett')
-        
+
         const setting_button = document.getElementById('setting');
-        setting_button.addEventListener('click',function(){
+        setting_button.addEventListener('click', function () {
             window.location.href = '/handle_delete'; //
         });
 
         const system_button = document.getElementById('system');
-        system_button.addEventListener('click',function(){
+        system_button.addEventListener('click', function () {
             window.location.href = '/system'; // setting date time and others
         })
+        const history_button = document.getElementById('history');
+            history_button.addEventListener('click', function () {
+                window.open('https://docs.google.com/spreadsheets/d/1Ybz8__q7UDEDUNcIu9puyc6FTMPbxpIc2t19vqUZMCo/edit?gid=1183255945#gid=1183255945', '_blank');
+            });
+
     </script>
 </body>
 

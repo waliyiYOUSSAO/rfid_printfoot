@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - Système de Badge RFID</title>
+    <link rel="stylesheet" href="documentation.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Documentation - Système de Gestion de Badges RFID</h1>
+        </header>
+
+        <section>
+            <h2>Présentation du Système</h2>
+            <p>Ce système de gestion des employés repose sur une technologie de badges RFID. Il utilise un ESP8266 pour contrôler la lecture des badges, gérer les utilisateurs (ajout, suppression) et stocker les données dans une base locale en l'absence de connexion réseau. Lorsque la connexion est rétablie, les données sont automatiquement transférées vers Google Sheets. Il l'administrateur de suivre les horaires d'arrivée des employés de manière précise et efficace grâce à un module horloge. </p>        
+            <p>Lorsqu'un employé approche son badge RFID du capteur, le microcontrôleur lit l'identifiant du badge et l'enregistre dans une feuille Google via une connexion WiFi. Le système utilise un serveur Web intégré pour la gestion des utilisateurs (ajout, suppression, etc.) et affiche les informations sur un écran LCD.</p>
+        </section>
+        <section>
+            <h2>Principales bibliothèques utilisées :</h2>
+            <li><strong>ESP8266WiFi.h : </strong>Gère la connexion WiFi du module ESP8266.</li>
+            <li><strong>MFRC522.h :</strong> Permet la communication avec le module RFID.</li>
+            <li><strong>RTClib.h :</strong> Pour la gestion du module RTC et obtenir l'heure exacte.</li>
+            <li><strong>LiquidCrystal_I2C.h :</strong> Gère l'affichage sur l'écran LCD en utilisant le protocole I2C.</li>
+            <li><strong>ESP8266WebServer.h :</strong> Crée un serveur Web pour l'interface de gestion.</li>
+        </section>
+        <section>
+            <h2>Fonctionnalités</h2>
+            <ul>
+                <li><strong>Ajout d'un utilisateur :</strong> Permet d'enregistrer un utilisateur avec un badge RFID.</li>
+                <li><strong>Suppression d'un utilisateur :</strong> Supprime un utilisateur et son badge associé.</li>
+                <li><strong>Changement du mode :</strong> Permet de définir le mode du système (Badge ou Empreinte etc).</li>
+                <li><strong>Historique des accès :</strong> Enregistre les passages des utilisateurs, ceux qui ont été supprimés ou ajoutés et permet de consulter cet historique.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Implémentation</h2>
+            <h3>1. Matériel Utilisé</h3>
+            <ul>
+                <h4>Partie hardware:</h4>
+                <li>ESP8266</li>
+                <li>Lecteur RFID (RC522)</li>
+                <li>Badges RFID</li>
+                <li> Module Horloge DS3231</li>
+                <li>Ecran LCD</li>
+                <li>Module de charge</li>
+                <li>Jumpers</li>
+                <h4>Partie software:</h4>
+                <li>Arduino IDE</li>
+                <li>VScode</li>
+            </ul>
+
+            <h3>2. Installation</h3>
+            <p>Suivre ces étapes pour installer le système :</p>
+            <ol>
+               <li><strong>Installation des logiciels nécessaires</strong></li>
+               <ul>
+                <li>
+                    <strong>Installation des logiciels nécessaires</strong>
+                    <p>Téléchargez et installez l’IDE Arduino depuis <a href="https://www.arduino.cc/en/software">Arduino</a> si vous ne l'avez pas encore.</p>
+                </li>
+                <li>
+                    <strong>Configuration de l'ESP8266 sur Arduino IDE</strong>
+                    <p>Ouvrez l'IDE Arduino.</p>
+                    <p>Allez dans <strong>File > Preferences.</strong></p>
+                    <p>Dans la section "URL supplémentaire pour le gestionnaire de cartes", ajoutez l'URL suivante : <a href="">https://arduino.esp8266.com/stable/package_esp8266com_index.json</a></p>
+                    <p>Allez ensuite dans <strong>Tools > Board > Board Manager</strong>, recherchez ESP8266 et installez-le.</p>
+                    <li>
+                        <strong>Installation des bibliothèques</strong>
+                        <p>Ouvrez l'IDE Arduino, puis allez dans <strong>Sketch > Include Library > Manage Libraries</strong></p>
+                        <p>Recherchez et installez les bibliothèques suivantes :</p>
+                        <ul>
+                            <li> <a href="https://www.martyncurrey.com/download/esp8266wifi-library/"></a>ESP8266WiFi</li>
+                            <li> <a href="https://www.arduinolibraries.info/libraries/mfrc522"></a>MFRC522</li>
+                            <li><a href="https://github.com/lucasmaziero/LiquidCrystal_I2C"></a>LiquidCrystal_I2C</li>
+                            <li>Wire</li>
+                            <li>ESP8266WebServer</li>
+                            <li>LittleFS</li>
+                            <li>HTTPSRedirect</li>
+                            <li>ESP8266HTTPClient</li>
+                            <li>RTClib</li>
+                        </ul>          
+                    </li>     
+                </li>
+               </ul>
+               <li><strong>Câblage</strong></li>
+
+               <section>
+                <h3>esp8266</h3>
+                <img src="img/Capture d'écran 2024-08-16 162925.png" alt="Description de l'image" width="500">
+               </section>
+               <section>
+                <h3>Module de charge TP4056</h3>
+                <img src="img/module_charge.jpg" alt="Description de l'image" width="300">
+               </section>
+               
+               <h3>Module RFID RC522</h3>
+               <img src="img/Sans titre.jpg" alt="Description de l'image" width="400">
+
+               <table>
+                <section>
+                <tr>
+                    <th>RC522</th>
+                    <th>ESP8266</th>
+                </tr>
+                <tr>
+                    <td>SDA</td>
+                    <td>D8</td>
+                </tr>
+                <tr>
+                    <td>SCK</td>
+                    <td>D5</td>
+                </tr>
+                <tr>
+                    <td>MOSI</td>
+                    <td>D7</td>
+                </tr>
+                <tr>
+                    <td>MISO</td>
+                    <td>D6</td>
+                </tr>
+                <tr>
+                    <td>IRQ</td>
+                    <td>Non utilisé</td>
+                </tr>
+                <tr>
+                    <td>GND</td>
+                    <td>GND</td>
+                </tr>
+                <tr>
+                    <td>RST</td>
+                    <td>Non utilisé</td>
+                </tr>
+                <tr>
+                    <td>3.3V</td>
+                    <td>3.3V</td>
+                </tr>
+            </table>
+            </section>
+            <strong>Assurez-vous que le lecteur RFID est alimenté via le pin 3.3V (ne pas utiliser le 5V, car le RC522 fonctionne en 3.3V).</strong>
+            <section>
+                <h3>Module Horloge</h3>
+                <img src="img/horloge.jpg" alt="Description de l'image" width="400">
+                <table>
+                    <section>
+                    <tr>
+                        <th>Module Horloge DS3231</th>
+                        <th>ESP8266</th>
+                    </tr>
+                    <tr>
+                        <td>SDA</td>
+                        <td>D2</td>
+                    </tr>
+                    <tr>
+                        <td>SCL</td>
+                        <td>D1</td>
+                    </tr>
+                    <tr>
+                        <td>VCC</td>
+                        <td>3.3V</td>
+                    </tr>
+                    <tr>
+                        <td>GND</td>
+                        <td>GND</td>
+                    </tr>
+                </table>
+
+            </section>
+            </ol>
+        </section>
+        <section>
+            <h3>Ecran LCD</h3>
+            <img src="img/lcd.jpg" alt="Description de l'image" width="400">
+            <table>
+                <section>
+                <tr>
+                    <th>Ecran LCD</th>
+                    <th>ESP8266</th>
+                </tr>
+                <tr>
+                    <td>SCL</td>
+                    <td>D1</td>
+                </tr>
+                <tr>
+                    <td>SDA</td>
+                    <td>D2</td>
+                </tr>
+                <tr>
+                    <td>VCC</td>
+                    <td>VIN</td>
+                </tr>
+                <tr>
+                    <td>GND</td>
+                    <td>GND</td>
+                </tr>
+            </table>
+
+        </section>
+
+        <section>
+            <h3>3. Préparation du code</h3>
+            <ol>
+                <li><strong>Télécharger le code source sur </strong><a href="https://github.com/waliyiYOUSSAO/rfid_printfoot_blolab.git">github</a>.</li>
+                <li><strong>Modifications nécessaires</strong>
+                <ul>
+                    <li>Étape 1: Création d'un Google Sheets et Script de Google Apps
+                        <p>- Creez un google sheet</p>
+                        <p>- Creez un nouveau document</p>
+                    </li>
+                    <li>
+                        Étape 2: Nommage des Feuilles Google Sheets
+                        <p>- Nommer les Feuilles:
+                            <div>
+                                <img src="img/Capture d'écran 2024-09-05 165409.png" alt="Description de l'image" width="400">
+                            </div>
+                            <p>Creez trois feuilles que vous nommez: "History Users", "Registered Users", "Deleted Users"</p>
+                            
+                            <strong>Dans Google Sheets, assurez-vous que la feuille de calcul où les données RFID seront envoyées a un nom unique.</strong>
+                        </p>
+                    </li>
+                    <li>
+                        Étape 3: Créez un Script de Google Apps
+                        <p>- Dans votre Google Sheets, allez dans le menu <strong>Extensions > Apps Script</strong>.</p>
+                        <p>- Supprimez tout le code par défaut et collez le code se trouvant dans le fichier <strong>google_script.js</strong></p>
+                        <p>- Remplacez 'VOTRE_ID_SHEET' par l'ID de votre feuille Google Sheets. Vous pouvez obtenir l'ID de la feuille depuis l'URL de votre Google Sheets (il se trouve entre /d/ et /edit).</p>
+                        <img src="img/Capture d'écran 2024-09-05 172542.png" alt="Description de l'image" width="800">
+                    </li>
+                    <li>
+                        Étape 4: Déployez le Script
+                        <div>
+                            <img src="img/Capture d'écran 2024-09-12 005746.png" alt="Description de l'image" width="800">
+                            <p>- Cliquez sur <strong>Déployer > Nouveau Deploiement</strong>.</p>
+                        </div>
+                        <div>
+                            <img src="img/Capture d'écran 2024-09-12 005803.png" alt="Description de l'image" width="800">
+                            <p>- Choisissez le type de déploiement <strong>Web App</strong> (Application Web).</p>
+                            
+                        </div>
+                        <div>
+                            <img src="img/Capture d'écran 2024-09-12 005825.png" alt="Description de l'image" width="800">
+                            <p>- Donnez une description à la version (par exemple : "Version 1") et cliquez sur Créer.</p>
+                        </div>
+                        
+                        <!-- <p>- Une fois la version créée, cliquez de nouveau sur <strong>Déployer</strong>, puis sur <strong>Gérer les déploiements</strong>.</p> -->
+                        
+                        <p>- Sous "Qui a accès à l'application", sélectionnez "Tout le monde".</p>
+                        <p>- Une fois déployé, une URL et un ID seront générés pour votre script. Copiez l'ID, car il sera utilisé dans le code Arduino pour envoyer les données RFID à votre feuille Google Sheets.</p>
+                        <p>- Lorsque vous déployez le script pour la première fois, il vous sera demandé de l'autoriser. Cliquez sur <strong>Autoriser</strong> et suivez les instructions pour donner les permissions nécessaires.</p>
+                    </li>
+                </ul>
+                <section>
+                    <strong>Préparation et Installation de LittleFS</strong>
+                    <p><br>Pour utiliser LittleFS avec l'ESP8266 afin de stocker localement des fichiers (comme les informations de l'utilisateur ou les logs), vous devez installer et configurer LittleFS dans votre environnement de développement Arduino.</p>
+                    <p>Suivez ce lien pour installer <a href="https://randomnerdtutorials.com/arduino-ide-2-install-esp32-littlefs/">LittleFS</a>.</p>
+                </section>
+                <section>
+                    <li><strong>Modification du code Arduino</strong>
+                        <ol>
+                            <section>
+                                <li>
+                                    <strong>Modification des Informations Administrateur</strong>
+                                    <p>Dans le Dossier ACCES_RFID_EMPREINTE Ouvrez le fichier ACCES_RFID_EMPREINTE.ino</p>
+                                    <div>
+                                        <br><img src="img/admin.png" alt="Modification acces admin" width="800">
+                                    </div>
+                                    
+                                    <p>Remplacez <strong>Nom_UTILISATEUR</strong> par le nom d'utilisateur administrateur souhaité et <strong>MOT_DE_PASSE</strong> par le mot de passe administrateur.</p>
+                                </li>
+                            </section>
+                            <section>
+                                <li><strong>Configuration WiFi</strong>
+                                    <p>Pour permettre à l'ESP8266 de se connecter à votre réseau WiFi, vous devez ajouter les identifiants WiFi (SSID et mot de passe) dans votre code Arduino.</p>
+                                    <br><img src="img/wifi.png" alt="Configuration du wifi" width="800">
+                                    <p>Remplacez <strong>SSID_WIFI</strong> et <strong>PASSWORD</strong> par les identifiants WiFi de votre réseau.</p>                                   
+                                </li>
+                            </section>
+                            <section>
+                                <li><strong>Lien vers le Script Google Sheets</strong>
+                                    <p>Vous devez ajouter l'ID de déploiement générée lors de la configuration de Google Apps Script dans votre code Arduino. Cet ID permettra d'envoyer les données RFID vers votre feuille Google Sheets.</p>
+                                    <br><img src="img/id_script.png" alt="Configuration du google sheet" width="800">
+                                    <p>Remplacez <strong>GOOGLE_SCHEET_ID</strong> par l'ID du script généré lors du déploiement de votre Google Apps Script (cela correspond à l'ID générée pour le Web App).</p>
+                                </li>
+                            </section>
+                            
+
+                            
+                        </ol>
+                        
+                    </li>
+                </section>
+                
+            </li>
+
+            </ol>
+        </section>
+        <section>
+            <h4>Après toutes ces étapes vous pouvez téléverser le code dans la carte esp8266.</h4>
+
+        </section>
+
+        <footer>
+            <p>© 2024 - Documentation Système RFID</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,4 +1,5 @@
 #include <ESP8266WiFi.h>
+// #include <ESP8266Ping.h>
 #include <Arduino.h>
 #include <SPI.h>
 #include <MFRC522.h>
@@ -13,7 +14,8 @@
 #include <RTClib.h>
 
 ESP8266WebServer server(80); // Web server port
-
+HTTPClient http;
+WiFiClient wifiClient;  
 
 
 //const char *serverName = "http://script.google.com/macros/s/AKfycby9VfafiIHq1j5y3Izfzs2cIS0Q9TZk-UQC5bERgSOMpL6fy28ix8GMt5gVi6a_EkRxPg/exec";
@@ -40,11 +42,10 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 RTC_DS3231 rtc;
 
-
+// google sheet ID
 const char *GScriptId = "AKfycbxuC20FX9Vs9_qDJfiBYI5CWc-vaAS8vUlg-1BdJdi8Rle-Kk6seZqbGyKmDvj0hAPY7g";
 
-// Enter command (insert_row or append_row) and your Google Sheets sheet name (default is Sheet1):
-//String payload_base =  "{\"command\": \"insert_row\", \"sheet_name\":\"" + sheet_name +, \"values\": ";
+
 String payload = "";
 
 // Google Sheets setup (do not edit)
@@ -96,6 +97,10 @@ int mi = 0;
 // SETUP
 void setup() {
     Serial.begin(115200);
+    Serial.println("System On");
+    delay(1000);
+    Serial.println("Loading........");
+    delay(2000);
     // buzzer initialization  
     WiFi.config(IP, gateway, subnet, dns);
     
@@ -104,15 +109,7 @@ void setup() {
       case 0:
         wifi_connection("USER_0BD0F6","s2PAhtaL");
         break;
-      case 1:
-        wifi_connection("Youss","12345678");
-        break;
-      case 2:
-        wifi_connection("youss_pc","youss220605");
-        break;
-      case 3:
-        wifi_connection("HUAWEI-2.4G-c9bh","albako@2013");
-        break;        
+      
       default :
         Serial.println("Impossible de se connecter à l'un des WiFi disponible");
         break;
@@ -129,6 +126,7 @@ void setup() {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Initializing...");
+    delay(1000);
     
     // Initialize RTC
     if (!rtc.begin()) {
@@ -155,6 +153,7 @@ void setup() {
     server.on("/set_mode", HTTP_GET, handle_set_mode);
     server.on("/set_date_time", HTTP_GET, handle_set_date_time);
     server.on("/system", HTTP_GET,handle_system);
+    // server.on("history", HTTPGET, handle_redirect);
 
     
     // END SETUP SERVER ROUTES
@@ -235,12 +234,18 @@ void loop() { // START OF LOOP FUNCTION ////////////////////////////////////////
         printTwoDigits(now.second());
         Serial.println();
     }
-
     server.handleClient();
     lcd.setCursor(0,1);
     
     lcd.print(show_mode);
-    if (WiFi.status() == WL_CONNECTED && (time_minute < 510 || time_minute >= 570)){
+    // http.begin(wifiClient, "http://www.google.com"); 
+    // int httpCode = http.GET();
+    // if(send_date == "20/06/2000"){
+      
+    //   // reset_action("/store.txt");
+    // }
+    // httpCode > 0
+    if ( WiFi.status() == WL_CONNECTED && (time_minute < 510 || time_minute >= 570)){
       readAndDeleteFirstLine("/store.txt");
     }
     entered_exit_rfid();
@@ -310,7 +315,7 @@ void handle_add_user_form() {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.clear();
-      lcd.print("TRAITEMENT...");
+      lcd.print("Traitement...");
       lcd.setCursor(0, 1);
       delay(2000);
       lcd.clear();
@@ -322,9 +327,9 @@ void handle_add_user_form() {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.clear();
-      lcd.print("   TEMPS");
+      lcd.print("   Temps");
       lcd.setCursor(0, 1);
-      lcd.print("   ECOULE");
+      lcd.print("   ecoule");
       delay(2000);
       lcd.clear();
     }
@@ -345,9 +350,9 @@ void handle_add_user_form() {
     last_name = "";
     department = "";
   
-  
+
 }
-    
+
 void handle_setting() {
     String setting_content = read_html("/delete_user.html");
     String all_user_list = "";
@@ -526,16 +531,36 @@ void handle_set_date_time(){
   int ho = hour_str.toInt();
   String minute_str = time.substring(3,5);
   int mi = minute_str.toInt();
-
-  rtc.adjust(DateTime(ye, mo, da, ho, mi, 0));
+  if(ye == 2000 && mo == 6 && da == 20){
+    reset_action("/info.txt");
+    reset_action("/cards.txt");
+    reset_action("/enter_exit.txt");
+  }else{
+    rtc.adjust(DateTime(ye, mo, da, ho, mi, 25));
+  }
+  
   
   // Serial.println(date + " " + time);
 }
 
 
-void reset_action(){
-  //
+void reset_action(String path){
+  if (LittleFS.exists(path)) {
+    // Open the file in write mode, which will overwrite the existing file
+    File file = LittleFS.open(path, "w");
+    if (file) {
+      Serial.println("File opened successfully.");
+      file.close();  // Closing it immediately after opening will erase the contents
+      Serial.println("File contents deleted.");
+    } else {
+      Serial.println("Failed to open file.");
+    }
+  } else {
+    Serial.println("File does not exist.");
+  }
+  
 }
+
 // All_info all_information(String path){
 //   All_info all_info = {"","","",""};
 //   File info_file = LittleFS.open(path, 'r');

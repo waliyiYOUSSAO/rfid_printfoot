@@ -92,7 +92,7 @@ void save_card_info(String card_id, String first_name, String last_name, String 
 void readFile(String path) {
     File file = LittleFS.open(path, "r");
     if (!file) {
-        Serial.println("Failed to open file for reading");
+        Serial.println("Failed to open file for reading readfile");
         return;
     }
 
@@ -110,7 +110,7 @@ bool unicity(String path,String card_id){
   File file = LittleFS.open(path,"r");
   
   if(!file){
-    Serial.println("Failed to open file for reading");
+    Serial.println("Failed to open file for reading unicity");
     return false;
   }
   else{  
@@ -172,7 +172,7 @@ int in_or_out(String in_out_id, String path) {
         // Open the file to read and update its contents
         File file = LittleFS.open(path, "r");
         if (!file) {
-            Serial.println("Failed to open file for reading");
+            Serial.println("Failed to open file for reading in or out");
             return -1;
         }
 
@@ -278,8 +278,10 @@ String name_after_verification(String path, String card) {
       String line = file.readStringUntil('\n');
       int first_comma = line.indexOf(',');
       int second_comma = line.indexOf(',', first_comma + 1);
+      int third_comma = line.indexOf(',', second_comma + 1);
       int last_comma = line.lastIndexOf(',');
       String stored_id = line.substring(0, first_comma);
+
       Serial.println(stored_id);
       
       // Assign to global variables
@@ -287,9 +289,11 @@ String name_after_verification(String path, String card) {
       if (card.equals(stored_id)) {
         
         String first_name_display = line.substring(first_comma + 1, second_comma);
+        String second_name_display = line.substring(second_comma +1, third_comma);
+        String name = first_name_display + " " + second_name_display;
         extract_last_name_and_department("/info.txt",card);
         file.close();
-        return first_name_display;
+        return name;
       }
     }
     file.close();
@@ -368,11 +372,15 @@ void entered_exit_rfid(){
     Serial.println("ACCES AUTORISE");
     int number_in_out = in_or_out(card, "/enter_exit.txt");
     String enter_or_exit = (number_in_out % 2 == 0 ) ? "   ARRIVE": "   DEPART";
-    display_some(name_returned, enter_or_exit);
+    String enter_or_exit_achro = (number_in_out % 2 == 0 ) ? "A": "D";
+    enter_or_exit_achro  = enter_or_exit_achro + " " + send_date;
+    display_some(name_returned, enter_or_exit_achro);
     if (time_minute >= 510 && time_minute < 570){
       store_txt("/store.txt", card, name_returned, enter_or_exit, send_time, send_date);
       readFile("/store.txt");
     }else{
+      // http.begin(wifiClient, "http://www.google.com"); // URL to check
+      // int httpCode = http.GET();
       if(WiFi.status() == WL_CONNECTED){
         send_data("History Users",card, name_returned, enter_or_exit, send_time, send_date);
       }
@@ -415,7 +423,7 @@ void readAndDeleteFirstLine(String filePath) {
     // Open the file in read mode
     File file = LittleFS.open(filePath, "r");
     if (!file) {
-        Serial.println("Failed to open file for reading");
+        Serial.println("Failed to open file for reading readnanddelete");
         return;
     }
     while(file.size()!= 0){
